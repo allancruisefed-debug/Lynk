@@ -30,7 +30,7 @@ Use this skill when the user wants to:
 
 Always call the `run_js` tool with:
 
-- **scriptName**: `bds-edge-hub/main/bds-edge-hub/scripts/index.html`
+- **scriptName**: `main/bds-edge-hub/scripts/index.html`
 - **data**: a JSON string with this shape:
 
 ```json
