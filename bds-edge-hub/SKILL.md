@@ -30,7 +30,7 @@ Use this skill when the user wants to:
 
 Always call the `run_js` tool with:
 
-- **script name**: `index.html`
+- **scriptName**: `index.html`
 - **data**: a JSON string with this shape:
 
 ```json
