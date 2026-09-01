@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+</head>
+<body>
+<script>
+window['ai_edge_gallery_get_result'] = async (data, secret) => {
+  try {
+    const request = JSON.parse(data);
+    const action = request.action;
+    const parameters = request.parameters || {};
+
+    // ========== CONFIG ==========
+    // Put your laptop's local IP here (from ipconfig)
+    const GATEWAY_HOST = "192.168.0.19";   // ← CHANGE THIS
+    const GATEWAY_PORT = 8765;
+    const GATEWAY = `http://${GATEWAY_HOST}:${GATEWAY_PORT}`;
+    // ============================
+
+    // Special case: open the interactive UI
+    if (action === "open_ui") {
+      const params = new URLSearchParams({
+        host: GATEWAY_HOST,
+        port: GATEWAY_PORT,
+        secret: secret || ""
+      });
+
+      return JSON.stringify({
+        result: "BDS Edge Hub interface opened.",
+        webview: {
+          url: `webview.html?${params.toString()}`,
+          aspectRatio: 1.25
+        }
+      });
+    }
+
+    // All other actions go to the laptop gateway
+    const response = await fetch(`${GATEWAY}/api/execute`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${secret || ""}`
+      },
+      body: JSON.stringify({
+        action: action,
+        parameters: parameters
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return JSON.stringify({
+        error: result.error || `Gateway returned HTTP ${response.status}`
+      });
+    }
+
+    return JSON.stringify({
+      result: result
+    });
+
+  } catch (error) {
+    console.error(error);
+    return JSON.stringify({
+      error: `Connection failed: ${error.message}. Make sure the laptop gateway is running and both devices are on the same Wi-Fi.`
+    });
+  }
+};
+</script>
+</body>
+</html>
