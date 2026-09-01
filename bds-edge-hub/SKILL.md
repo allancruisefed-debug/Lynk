@@ -38,8 +38,11 @@ Always call the `run_js` tool with:
   "action": "string",
   "parameters": {}
 }
-Common actions
 
+
+
+
+Common actions
 
 Action, Purpose, Example parameters
 get_status, Check if the laptop gateway is online, {}
