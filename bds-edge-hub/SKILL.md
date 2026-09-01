@@ -44,6 +44,7 @@ Always call the `run_js` tool with:
 
 Common actions
 
+| test | Test if the skill is working | {} |
 Action, Purpose, Example parameters
 get_status, Check if the laptop gateway is online, {}
 discover_skills, List installed skills, {}
