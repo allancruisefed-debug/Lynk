@@ -6,20 +6,27 @@
 <body>
 <script>
 window['ai_edge_gallery_get_result'] = async (data, secret) => {
+  console.log("📥 Received data:", data);
+  console.log("🔑 Secret provided:", secret ? "Yes" : "No");
+
   try {
+    // Parse the incoming data
     const request = JSON.parse(data);
-    const action = request.action;
+    const action = request.action || "unknown";
     const parameters = request.parameters || {};
 
+    console.log("🎯 Action:", action);
+    console.log("📦 Parameters:", parameters);
+
     // ========== CONFIG ==========
-    // Put your laptop's local IP here (from ipconfig)
-    const GATEWAY_HOST = "zink.tail5bffe3.ts.net";   // ← CHANGE THIS
+    const GATEWAY_HOST = "zink.tail5bffe3.ts.net";
     const GATEWAY_PORT = 8765;
     const GATEWAY = `http://${GATEWAY_HOST}:${GATEWAY_PORT}`;
     // ============================
 
     // Special case: open the interactive UI
     if (action === "open_ui") {
+      console.log("🖥️ Opening UI...");
       const params = new URLSearchParams({
         host: GATEWAY_HOST,
         port: GATEWAY_PORT,
@@ -29,13 +36,26 @@ window['ai_edge_gallery_get_result'] = async (data, secret) => {
       return JSON.stringify({
         result: "BDS Edge Hub interface opened.",
         webview: {
-          url: `webview.html?${params.toString()}`,
+          url: `assets/webview.html?${params.toString()}`,
           aspectRatio: 1.25
         }
       });
     }
 
+    // Test action: just return a success message
+    if (action === "test") {
+      console.log("🧪 Test action called!");
+      return JSON.stringify({
+        result: {
+          message: "✅ Test successful! The skill is working!",
+          timestamp: new Date().toISOString(),
+          action: action
+        }
+      });
+    }
+
     // All other actions go to the laptop gateway
+    console.log(`🌐 Calling gateway: ${GATEWAY}/api/execute`);
     const response = await fetch(`${GATEWAY}/api/execute`, {
       method: "POST",
       headers: {
@@ -48,7 +68,9 @@ window['ai_edge_gallery_get_result'] = async (data, secret) => {
       })
     });
 
+    console.log("📡 Response status:", response.status);
     const result = await response.json();
+    console.log("📨 Response data:", result);
 
     if (!response.ok) {
       return JSON.stringify({
@@ -61,9 +83,11 @@ window['ai_edge_gallery_get_result'] = async (data, secret) => {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("❌ ERROR:", error);
+    console.error("📋 Stack:", error.stack);
     return JSON.stringify({
-      error: `Connection failed: ${error.message}. Make sure the laptop gateway is running and both devices are on the same Wi-Fi.`
+      error: `JS Error: ${error.message}`,
+      stack: error.stack
     });
   }
 };
