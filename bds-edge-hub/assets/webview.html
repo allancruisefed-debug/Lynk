@@ -3,385 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BDS Edge Hub — Laptop Gateway UI</title>
+    <title>Gateway Status</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        /* Styling for the interactive UI */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #0b0e14;
             color: #e8edf5;
-            padding: 24px;
+            padding: 16px;
             display: flex;
             justify-content: center;
+            align-items: center;
             min-height: 100vh;
+            margin: 0;
         }
         .container {
-            max-width: 800px;
-            width: 100%;
             background: #151e27;
-            border-radius: 24px;
-            padding: 32px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-            border: 1px solid #2a3643;
-        }
-        h1 {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .badge {
-            background: #2a8c5a;
-            padding: 4px 14px;
-            border-radius: 40px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #d4f0e0;
-            letter-spacing: 0.3px;
-        }
-        .sub {
-            color: #8a9bae;
-            margin-bottom: 28px;
-            border-bottom: 1px solid #2a3643;
-            padding-bottom: 16px;
-        }
-        .status-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            background: #0e151e;
-            padding: 20px;
             border-radius: 16px;
-            margin-bottom: 28px;
-            border: 1px solid #25303e;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #2a3643;
+            text-align: center;
         }
-        .stat {
-            display: flex;
-            flex-direction: column;
+        h2 {
+            margin: 0 0 12px 0;
+            color: #86efac;
+            font-weight: 400;
         }
-        .stat-label {
-            font-size: 13px;
+        .info {
+            background: #0e151e;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid #2a8c5a;
+        }
+        .label {
+            font-size: 12px;
             color: #7a8fa5;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .stat-value {
-            font-size: 20px;
+        .value {
+            font-size: 18px;
             font-weight: 500;
-            margin-top: 4px;
             word-break: break-all;
         }
-        .online {
+        .status-online {
             color: #4ade80;
         }
-        .offline {
+        .status-offline {
             color: #f87171;
         }
-        .action-section {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-top: 8px;
-        }
-        .action-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
-            background: #0e151e;
-            padding: 14px 18px;
-            border-radius: 14px;
-            border: 1px solid #25303e;
-        }
-        .action-row input, .action-row select {
-            flex: 1;
-            min-width: 150px;
-            background: #1c2836;
-            border: 1px solid #32445a;
-            color: #e8edf5;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 15px;
-            outline: none;
-        }
-        .action-row input:focus, .action-row select:focus {
-            border-color: #5a7c9e;
-            box-shadow: 0 0 0 2px #1d3a57;
-        }
-        .action-row input::placeholder {
-            color: #5d738b;
-        }
-        .btn {
-            background: #2a8c5a;
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 15px;
-            transition: 0.15s;
-            white-space: nowrap;
-            border: 1px solid #3aa572;
-        }
-        .btn:hover {
-            background: #34a06b;
-            transform: scale(1.01);
-        }
-        .btn-secondary {
-            background: #2d3f54;
-            border-color: #405b78;
-        }
-        .btn-secondary:hover {
-            background: #3b526b;
-        }
-        .btn-danger {
-            background: #b13a4b;
-            border-color: #c94e60;
-        }
-        .btn-danger:hover {
-            background: #c94456;
-        }
-        #output {
-            background: #0a1017;
-            border: 1px solid #1f2d3d;
-            border-radius: 14px;
-            padding: 18px;
-            margin-top: 20px;
-            font-family: 'Fira Code', 'Consolas', monospace;
-            font-size: 14px;
-            white-space: pre-wrap;
-            word-break: break-word;
-            max-height: 300px;
-            overflow-y: auto;
-            color: #c8d6e5;
-        }
-        #output .error {
-            color: #fca5a5;
-        }
-        #output .success {
-            color: #86efac;
-        }
         .footer {
-            margin-top: 24px;
-            font-size: 13px;
+            margin-top: 16px;
+            font-size: 12px;
             color: #5d738b;
-            text-align: center;
             border-top: 1px solid #1f2d3d;
-            padding-top: 20px;
-        }
-        .footer a {
-            color: #6d8fb0;
-            text-decoration: none;
-        }
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        @media (max-width: 600px) {
-            .container { padding: 20px; }
-            .status-grid { grid-template-columns: 1fr; }
-            .action-row { flex-direction: column; align-items: stretch; }
+            padding-top: 12px;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>
-        ⚡ BDS Edge Hub
-        <span class="badge" id="connectionBadge">● Connecting...</span>
-    </h1>
-    <div class="sub">Laptop Gateway — Remote Control Interface</div>
-
-    <div class="status-grid" id="statusGrid">
-        <div class="stat"><span class="stat-label">Gateway</span><span class="stat-value" id="gatewayStatus">⏳ Checking...</span></div>
-        <div class="stat"><span class="stat-label">Skills Directory</span><span class="stat-value" id="skillsDir">—</span></div>
-        <div class="stat"><span class="stat-label">Installed Skills</span><span class="stat-value" id="skillsCount">—</span></div>
-        <div class="stat"><span class="stat-label">Secret</span><span class="stat-value" style="font-size:14px; color:#8a9bae;" id="secretDisplay">••••••••</span></div>
-    </div>
-
-    <div class="action-section">
-        <div class="action-row">
-            <select id="actionSelect" style="flex:1.5;">
-                <option value="get_status">🔍 Get Status</option>
-                <option value="discover_skills">📂 Discover Skills</option>
-                <option value="run_command">⚡ Run Command</option>
-                <option value="execute_skill">▶️ Execute Skill</option>
-                <option value="clone_repo">📥 Clone Repository</option>
-                <option value="inspect_skill">🔎 Inspect Skill</option>
-            </select>
-            <input type="text" id="paramInput" placeholder="Parameters (e.g., {\"command\":\"dir\"})" style="flex:2;">
-            <button class="btn" id="executeBtn">▶ Execute</button>
+    <div class="container">
+        <h2>⚡ BDS Edge Hub</h2>
+        <div class="info">
+            <div class="label">Gateway Status</div>
+            <div class="value" id="gatewayStatus">⏳ Loading...</div>
         </div>
-        <div style="display:flex; gap:12px; flex-wrap:wrap;">
-            <button class="btn btn-secondary" id="refreshStatusBtn">🔄 Refresh Status</button>
-            <button class="btn btn-secondary" id="clearOutputBtn">🗑️ Clear Output</button>
+        <div class="info">
+            <div class="label">Skills Directory</div>
+            <div class="value" id="skillsDir">—</div>
+        </div>
+        <div class="info">
+            <div class="label">Installed Skills</div>
+            <div class="value" id="skillsCount">—</div>
+        </div>
+        <div class="footer">
+            Data received from the laptop gateway via the hidden skill logic.
         </div>
     </div>
 
-    <div id="output">💡 Ready. Click <strong>Refresh Status</strong> or <strong>Execute</strong> to start.</div>
-    <div class="footer">
-        BDS Edge Hub v1.0 · <a href="#" id="openInNewTab">Open in new tab</a> · 
-        <span id="hostInfo">Host: <span id="hostDisplay">—</span></span>
-    </div>
-</div>
+    <script>
+        // The webview receives its data via URL query parameters
+        // as recommended by the official documentation [citation:5].
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            const skillsDir = urlParams.get('skillsDir');
+            const skillsCount = urlParams.get('skillsCount');
 
-<script>
-    (function() {
-        // --- Get host and secret from URL parameters ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const GATEWAY_HOST = urlParams.get('host') || '192.168.1.42';
-        const GATEWAY_PORT = urlParams.get('port') || '8765';
-        const SECRET = urlParams.get('secret') || '88828828u2u288282hh828hfhu';
+            const statusEl = document.getElementById('gatewayStatus');
+            const dirEl = document.getElementById('skillsDir');
+            const countEl = document.getElementById('skillsCount');
 
-        const GATEWAY = `http://${GATEWAY_HOST}:${GATEWAY_PORT}`;
-
-        // Update UI with host info
-        document.getElementById('hostDisplay').textContent = `${GATEWAY_HOST}:${GATEWAY_PORT}`;
-        document.getElementById('secretDisplay').textContent = SECRET ? '••••••••' : 'Not set';
-
-        // --- DOM refs ---
-        const outputEl = document.getElementById('output');
-        const gatewayStatusEl = document.getElementById('gatewayStatus');
-        const skillsDirEl = document.getElementById('skillsDir');
-        const skillsCountEl = document.getElementById('skillsCount');
-        const badgeEl = document.getElementById('connectionBadge');
-        const actionSelect = document.getElementById('actionSelect');
-        const paramInput = document.getElementById('paramInput');
-        const executeBtn = document.getElementById('executeBtn');
-        const refreshBtn = document.getElementById('refreshStatusBtn');
-        const clearBtn = document.getElementById('clearOutputBtn');
-
-        // --- Helper to call the gateway ---
-        async function callGateway(action, parameters = {}) {
-            const body = JSON.stringify({ action, parameters });
-            try {
-                const response = await fetch(`${GATEWAY}/api/execute`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${SECRET}`
-                    },
-                    body: body
-                });
-                const result = await response.json();
-                if (!response.ok) {
-                    throw new Error(result.error || `HTTP ${response.status}`);
-                }
-                return { success: true, data: result };
-            } catch (error) {
-                return { success: false, error: error.message };
-            }
-        }
-
-        // --- Update status UI ---
-        async function refreshStatus() {
-            appendOutput('⏳ Fetching gateway status...', 'info');
-            const result = await callGateway('get_status');
-            if (result.success) {
-                const data = result.data;
-                gatewayStatusEl.innerHTML = `<span class="online">● Online</span>`;
-                badgeEl.textContent = '● Online';
-                badgeEl.style.background = '#2a8c5a';
-                skillsDirEl.textContent = data.skills_dir || '—';
-                skillsCountEl.textContent = data.skills_count ?? '0';
-                appendOutput(`✅ Gateway online. Skills: ${data.skills_count}`, 'success');
+            if (status === 'online') {
+                statusEl.innerHTML = '<span class="status-online">● Online</span>';
+            } else if (status === 'offline') {
+                statusEl.innerHTML = '<span class="status-offline">● Offline</span>';
             } else {
-                gatewayStatusEl.innerHTML = `<span class="offline">● Offline</span>`;
-                badgeEl.textContent = '● Offline';
-                badgeEl.style.background = '#8c2a2a';
-                skillsDirEl.textContent = '—';
-                skillsCountEl.textContent = '—';
-                appendOutput(`❌ ${result.error}`, 'error');
-            }
-        }
-
-        // --- Append to output ---
-        function appendOutput(text, type = 'info') {
-            const timestamp = new Date().toLocaleTimeString();
-            const colorClass = type === 'error' ? 'error' : (type === 'success' ? 'success' : '');
-            outputEl.innerHTML += `\n[${timestamp}] <span class="${colorClass}">${text}</span>`;
-            outputEl.scrollTop = outputEl.scrollHeight;
-        }
-
-        // --- Execute current action ---
-        async function executeAction() {
-            const action = actionSelect.value;
-            let params = {};
-            const paramRaw = paramInput.value.trim();
-            if (paramRaw) {
-                try {
-                    params = JSON.parse(paramRaw);
-                    if (typeof params !== 'object' || Array.isArray(params)) throw new Error('Parameters must be a JSON object');
-                } catch (e) {
-                    appendOutput(`❌ Invalid parameters JSON: ${e.message}`, 'error');
-                    return;
-                }
+                statusEl.textContent = '⚠️ Unknown';
             }
 
-            // Special case: if no params and action is run_command, prompt
-            if (action === 'run_command' && !paramRaw) {
-                const cmd = prompt('Enter command to execute (e.g., "dir" or "echo Hello"):');
-                if (!cmd) return;
-                params = { command: cmd };
-            }
-
-            appendOutput(`▶ Executing: ${action} ${JSON.stringify(params)}`, 'info');
-            const result = await callGateway(action, params);
-            if (result.success) {
-                appendOutput(`✅ Result: ${JSON.stringify(result.data, null, 2)}`, 'success');
-                if (action === 'discover_skills' && result.data.skills) {
-                    const skillNames = result.data.skills.map(s => s.name).join(', ') || 'none';
-                    appendOutput(`📂 Found skills: ${skillNames}`, 'info');
-                }
-                if (action === 'get_status') {
-                    // refresh the status grid too
-                    await refreshStatus();
-                }
-            } else {
-                appendOutput(`❌ Error: ${result.error}`, 'error');
-            }
-        }
-
-        // --- Clear output ---
-        function clearOutput() {
-            outputEl.innerHTML = '💡 Output cleared.';
-        }
-
-        // --- Open in new tab ---
-        document.getElementById('openInNewTab').addEventListener('click', (e) => {
-            e.preventDefault();
-            const url = new URL(window.location.href);
-            url.search = `?host=${GATEWAY_HOST}&port=${GATEWAY_PORT}&secret=${SECRET}`;
-            window.open(url.href, '_blank');
-        });
-
-        // --- Event listeners ---
-        executeBtn.addEventListener('click', executeAction);
-        refreshBtn.addEventListener('click', refreshStatus);
-        clearBtn.addEventListener('click', clearOutput);
-
-        // Enter key in param input triggers execute
-        paramInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') executeAction();
-        });
-
-        // --- Auto-refresh on load ---
-        window.addEventListener('load', () => {
-            refreshStatus();
-            appendOutput('🖥️ BDS Edge Hub UI loaded.', 'info');
-        });
-
-        // --- Quick action: double-click on status to refresh ---
-        document.getElementById('statusGrid').addEventListener('dblclick', refreshStatus);
-
-        console.log(`🔌 BDS Edge Hub UI ready. Gateway: ${GATEWAY}`);
-    })();
-</script>
+            dirEl.textContent = skillsDir || '—';
+            countEl.textContent = skillsCount !== null ? skillsCount : '—';
+        })();
+    </script>
 </body>
 </html>
