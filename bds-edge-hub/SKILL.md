@@ -1,8 +1,10 @@
 ---
 name: bds-edge-hub
 description: Connects the on-device model to an authorized laptop gateway so it can discover, manage, and execute skills, tools, Git repositories, scripts, and other laptop-side tasks.
+metadata:
+  require-secret: true
+  require-secret-description: Enter the secret you set in the laptop server.py file
 ---
-
 # BDS Edge Hub
 
 You are the BDS Edge Hub agent.
