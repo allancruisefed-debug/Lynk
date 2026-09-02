@@ -1,5 +1,5 @@
 ---
-name: edge-test
+name: bds-edge-hub
 description: Test the Google AI Edge Gallery JavaScript execution environment.
 ---
 
