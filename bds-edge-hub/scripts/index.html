@@ -1,21 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+</head>
+<body>
+<script>
 window["ai_edge_gallery_get_result"] = async (data) => {
-  try {
-    const response = await fetch(
-      "https://zink.tail5bffe3.ts.net/health"
-    );
-
-    const text = await response.text();
-
-    return JSON.stringify({
-      ok: true,
-      status: response.status,
-      response: text
-    });
-
-  } catch (error) {
-    return JSON.stringify({
-      ok: false,
-      error: error.message
-    });
-  }
+  return JSON.stringify({
+    ok: true,
+    message: "run_js works",
+    received: data
+  });
 };
+</script>
+</body>
+</html>
