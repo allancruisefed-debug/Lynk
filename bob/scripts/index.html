@@ -1,21 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+<meta charset="UTF-8">
+<title>Lynk Master Runner</title>
 </head>
 <body>
 <script>
+const MEMORY_KEY = "lynk_master_memory";
+
+function getMemory() {
+  return JSON.parse(localStorage.getItem(MEMORY_KEY) || "{}");
+}
+
+function saveMemory(memory) {
+  localStorage.setItem(MEMORY_KEY, JSON.stringify(memory));
+}
+
+async function runAction(input) {
+  const action = input?.action;
+
+  if (action === "memory") {
+    const memory = getMemory();
+    const operation = input.operation;
+
+    if (operation === "save") {
+      if (!input.key) throw new Error("Memory save requires a key.");
+      memory[input.key] = input.value;
+      saveMemory(memory);
+      return { action, operation, success: true, key: input.key, value: input.value };
+    }
+
+    if (operation === "get") {
+      if (!input.key) throw new Error("Memory get requires a key.");
+      return { action, operation, success: true, key: input.key, value: memory[input.key] ?? null };
+    }
+
+    if (operation === "search") {
+      const query = String(input.query || "").toLowerCase();
+      const matches = Object.entries(memory)
+        .filter(([key, value]) =>
+          key.toLowerCase().includes(query) ||
+          JSON.stringify(value).toLowerCase().includes(query)
+        )
+        .map(([key, value]) => ({ key, value }));
+
+      return { action, operation, success: true, query, matches };
+    }
+
+    if (operation === "delete") {
+      if (!input.key) throw new Error("Memory delete requires a key.");
+      const existed = Object.hasOwn(memory, input.key);
+      delete memory[input.key];
+      saveMemory(memory);
+      return { action, operation, success: true, key: input.key, deleted: existed };
+    }
+
+    throw new Error("Unknown memory operation.");
+  }
+
+  if (action === "context") {
+    return {
+      action,
+      success: true,
+      persona: localStorage.getItem("lynk_persona") || "",
+      systemPrompt: localStorage.getItem("lynk_extra_system_prompt") || ""
+    };
+  }
+
+  if (action === "search") {
+    const query = String(input.query || "").trim();
+    if (!query) throw new Error("Search requires a query.");
+
+    return {
+      action,
+      success: false,
+      status: "not_configured",
+      query,
+      message: "Search provider will be connected in the next step."
+    };
+  }
+
+  throw new Error("Unknown action. Use search, memory, or context.");
+}
+
 window["ai_edge_gallery_get_result"] = async (data) => {
   try {
-    return JSON.stringify({
-      result: "Neon Dodge is ready!",
-      webview: {
-        url: "game.html",
-        aspectRatio: 0.6
-      }
-    });
-  } catch (e) {
-    return JSON.stringify({ error: e.message });
+    const input = typeof data === "string" ? JSON.parse(data) : data;
+    return JSON.stringify({ result: await runAction(input) });
+  } catch (error) {
+    return JSON.stringify({ error: error.message });
   }
 };
 </script>
