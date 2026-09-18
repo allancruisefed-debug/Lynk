@@ -1,25 +1,31 @@
 ---
-name: neon-dodge
-description: A small touch-friendly arcade game that runs inside Google AI Edge Gallery. Move the player left and right to dodge falling blocks and survive as long as possible.
+name: lynk-master
+description: Multi-action Edge Gallery skill with web search, memory, and context loading.
 ---
 
-# Neon Dodge
+# Lynk Master Skill
 
-Run this skill to open and play a small arcade game.
+Actions:
+- `search` — search the web.
+- `memory` — save, get, search, or delete local memory.
+- `context` — load the persona and extra system prompt.
 
 ## Execution
-Use the Edge Gallery JavaScript skill runner to load:
+Use the Edge Gallery JavaScript runner with:
 `scripts/index.html`
 
-The page is self-contained and needs no external libraries or network access.
+Pass JSON through `run_js`.
 
-The JavaScript bridge is:
-`window["ai_edge_gallery_get_result"]`
+Examples:
+- `{"action":"search","query":"your query"}`
+- `{"action":"memory","operation":"save","key":"name","value":"Allan"}`
+- `{"action":"memory","operation":"get","key":"name"}`
+- `{"action":"memory","operation":"search","query":"name"}`
+- `{"action":"memory","operation":"delete","key":"name"}`
+- `{"action":"context"}`
 
-When called, it returns a JSON status object. The game itself is played through the visible HTML UI.
+Memory is stored locally by this skill.
 
-## Game
-- Drag or use the left/right buttons to move.
-- Avoid the falling blocks.
-- Score increases while you survive.
-- Tap Restart after a collision.
+## Rules
+- Use only the exact actions: `search`, `memory`, `context`.
+- Report actual errors; never invent results.
