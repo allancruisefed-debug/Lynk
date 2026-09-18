@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Neon Dodge</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: #080b16;
+    color: white;
+    font-family: system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  #game {
+    width: min(94vw, 430px);
+    height: min(92vh, 760px);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #39436a;
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 50% 10%, #1d2750 0, transparent 35%),
+      linear-gradient(#0d1225, #050711);
+    box-shadow: 0 0 35px rgba(85, 110, 255, .18);
+    touch-action: none;
+  }
+
+  #hud {
+    position: absolute;
+    top: 14px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 10;
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  #score { color: #9ee7ff; }
+  #best { color: #d7b8ff; }
+
+  #player {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    bottom: 70px;
+    left: calc(50% - 22px);
+    border-radius: 12px;
+    background: linear-gradient(135deg, #67e8f9, #818cf8);
+    box-shadow: 0 0 20px rgba(103, 232, 249, .65);
+    z-index: 5;
+  }
+
+  .enemy {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #fb7185, #f43f5e);
+    box-shadow: 0 0 18px rgba(244, 63, 94, .55);
+  }
+
+  #message {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 35px;
+    background: rgba(3, 5, 12, .72);
+    z-index: 20;
+  }
+
+  #messageBox {
+    background: rgba(20, 26, 52, .96);
+    border: 1px solid #46527d;
+    border-radius: 20px;
+    padding: 24px;
+    width: 88%;
+  }
+
+  h1 { margin: 0 0 8px; font-size: 34px; }
+  p { opacity: .82; line-height: 1.45; }
+
+  button {
+    border: 0;
+    border-radius: 14px;
+    padding: 13px 22px;
+    font-size: 17px;
+    font-weight: 800;
+    color: white;
+    background: #4f46e5;
+  }
+
+  #controls {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    gap: 12px;
+    z-index: 10;
+  }
+
+  #controls button {
+    flex: 1;
+    background: rgba(45, 55, 95, .9);
+    border: 1px solid #58658f;
+    font-size: 25px;
+    padding: 10px;
+    touch-action: none;
+  }
+
+  .star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    opacity: .35;
+    border-radius: 50%;
+  }
+</style>
+</head>
+
+<body>
+<div id="game">
+  <div id="hud">
+    <div id="score">Score: 0</div>
+    <div id="best">Best: 0</div>
+  </div>
+
+  <div id="player"></div>
+
+  <div id="controls">
+    <button id="left">◀</button>
+    <button id="right">▶</button>
+  </div>
+
+  <div id="message">
+    <div id="messageBox">
+      <h1>Neon Dodge</h1>
+      <p>Dodge the falling blocks. Drag the blue square or use the buttons.</p>
+      <button id="start">Start Game</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+const scoreText = document.getElementById("score");
+const bestText = document.getElementById("best");
+const message = document.getElementById("message");
+const messageBox = document.getElementById("messageBox");
+const startButton = document.getElementById("start");
+
+let playerX = 0;
+let enemies = [];
+let score = 0;
+let best = Number(localStorage.getItem("neonDodgeBest") || 0);
+let running = false;
+let lastTime = 0;
+let spawnTimer = 0;
+let speed = 190;
+let moveLeft = false;
+let moveRight = false;
+
+bestText.textContent = "Best: " + best;
+
+for (let i = 0; i < 45; i++) {
+  const star = document.createElement("div");
+  star.className = "star";
+  star.style.left = Math.random() * 100 + "%";
+  star.style.top = Math.random() * 100 + "%";
+  game.appendChild(star);
+}
+
+function resetPlayer() {
+  playerX = game.clientWidth / 2 - player.offsetWidth / 2;
+  player.style.left = playerX + "px";
+}
+
+function spawnEnemy() {
+  const enemy = document.createElement("div");
+  enemy.className = "enemy";
+  enemy.x = Math.random() * (game.clientWidth - 36);
+  enemy.y = -40;
+  enemy.style.left = enemy.x + "px";
+  enemy.style.top = enemy.y + "px";
+  game.appendChild(enemy);
+  enemies.push(enemy);
+}
+
+function hit(a, b) {
+  return (
+    a.x < b.x + 36 &&
+    a.x + 44 > b.x &&
+    a.y < b.y + 36 &&
+    a.y + 44 > b.y
+  );
+}
+
+function endGame() {
+  running = false;
+
+  if (score > best) {
+    best = score;
+    localStorage.setItem("neonDodgeBest", best);
+  }
+
+  bestText.textContent = "Best: " + best;
+
+  messageBox.innerHTML = `
+    <h1>Game Over</h1>
+    <p>Your score: <strong>${score}</strong><br>Best score: <strong>${best}</strong></p>
+    <button id="restart">Restart</button>
+  `;
+
+  document.getElementById("restart").onclick = startGame;
+  message.style.display = "flex";
+}
+
+function startGame() {
+  enemies.forEach(e => e.remove());
+  enemies = [];
+  score = 0;
+  speed = 190;
+  spawnTimer = 0;
+  scoreText.textContent = "Score: 0";
+  resetPlayer();
+  message.style.display = "none";
+  running = true;
+  lastTime = performance.now();
+  requestAnimationFrame(loop);
+}
+
+function loop(now) {
+  if (!running) return;
+
+  const dt = Math.min((now - lastTime) / 1000, 0.04);
+  lastTime = now;
+
+  if (moveLeft) playerX -= 300 * dt;
+  if (moveRight) playerX += 300 * dt;
+
+  playerX = Math.max(0, Math.min(game.clientWidth - 44, playerX));
+  player.style.left = playerX + "px";
+
+  spawnTimer += dt;
+  if (spawnTimer > Math.max(.28, .75 - score / 800)) {
+    spawnEnemy();
+    spawnTimer = 0;
+  }
+
+  const playerBox = {
+    x: playerX,
+    y: game.clientHeight - 70 - 44
+  };
+
+  enemies = enemies.filter(enemy => {
+    enemy.y += speed * dt;
+    enemy.style.top = enemy.y + "px";
+
+    if (hit(playerBox, enemy)) {
+      endGame();
+      return false;
+    }
+
+    if (enemy.y > game.clientHeight) {
+      enemy.remove();
+      return false;
+    }
+
+    return true;
+  });
+
+  score += dt * 10;
+  scoreText.textContent = "Score: " + Math.floor(score);
+  speed += dt * 2;
+
+  requestAnimationFrame(loop);
+}
+
+function hold(button, direction) {
+  button.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    if (direction === "left") moveLeft = true;
+    else moveRight = true;
+  });
+
+  ["pointerup", "pointercancel", "pointerleave"].forEach(type => {
+    button.addEventListener(type, () => {
+      if (direction === "left") moveLeft = false;
+      else moveRight = false;
+    });
+  });
+}
+
+hold(document.getElementById("left"), "left");
+hold(document.getElementById("right"), "right");
+
+game.addEventListener("pointermove", e => {
+  if (e.buttons === 1 && running) {
+    const rect = game.getBoundingClientRect();
+    playerX = e.clientX - rect.left - 22;
+    playerX = Math.max(0, Math.min(game.clientWidth - 44, playerX));
+    player.style.left = playerX + "px";
+  }
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") moveLeft = true;
+  if (e.key === "ArrowRight") moveRight = true;
+});
+
+document.addEventListener("keyup", e => {
+  if (e.key === "ArrowLeft") moveLeft = false;
+  if (e.key === "ArrowRight") moveRight = false;
+});
+
+startButton.onclick = startGame;
+resetPlayer();
+
+/* Edge Gallery bridge */
+window["ai_edge_gallery_get_result"] = async (data) => {
+  return JSON.stringify({
+    status: "ready",
+    game: "neon-dodge",
+    score: Math.floor(score),
+    best: best,
+    running: running
+  });
+};
+</script>
+</body>
+</html>
