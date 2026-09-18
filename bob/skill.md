@@ -9,7 +9,7 @@ Run this skill to open and play a small arcade game.
 
 ## Execution
 Use the Edge Gallery JavaScript skill runner to load:
-`bob/scripts/index.html`
+`scripts/index.html`
 
 The page is self-contained and needs no external libraries or network access.
 
